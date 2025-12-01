@@ -1,0 +1,51 @@
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  overflow: hidden !important; /* Prevent scrollbars from interfering with layout */
+  font-family: Arial, sans-serif !important;
+  display: flex !important; /* Use flexbox for layout */
+}
+
+#sidebar {
+  width: 220px !important;
+  background-color: #f8f8f8 !important;
+  padding: 15px !important;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1) !important;
+  overflow-y: auto !important; /* Enable scrolling if content overflows */
+  flex-shrink: 0 !important; /* Prevent sidebar from shrinking */
+}
+
+#sidebar h2 {
+  margin-top: 0 !important;
+  color: #333 !important;
+  border-bottom: 1px solid #eee !important;
+  padding-bottom: 10px !important;
+  margin-bottom: 15px !important;
+}
+
+#sidebar div {
+  margin-bottom: 10px !important;
+}
+
+#sidebar input[type="checkbox"] {
+  margin-right: 8px !important;
+  width: 16px !important;
+  height: 16px !important;
+  vertical-align: middle !important;
+}
+
+#sidebar label {
+  font-size: 1.1em !important;
+  color: #555 !important;
+  vertical-align: middle !important;
+  cursor: pointer !important;
+}
+
+#map {
+  flex-grow: 1 !important; /* Map takes remaining space */
+  height: 100% !important;
+  background-color: #e0e0e0 !important; /* Fallback background */
+  z-index: 0 !important; /* Ensure map is not behind other elements */
+}

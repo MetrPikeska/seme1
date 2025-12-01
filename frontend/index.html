@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Leaflet + Layers</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <link rel="stylesheet" href="./style.css" />
+  <script defer src="./map.js"></script>
+</head>
+<body>
+  <div id="sidebar">
+    <h2>Layers</h2>
+    <div>
+      <input type="checkbox" id="chk-chko">
+      <label for="chk-chko">CHKO</label>
+    </div>
+    <div>
+      <input type="checkbox" id="chk-orp">
+      <label for="chk-orp">ORP</label>
+    </div>
+    <div>
+      <input type="checkbox" id="chk-climate_master_geom">
+      <label for="chk-climate_master_geom">Klima</label>
+    </div>
+  </div>
+  <div id="map"></div>
+</body>
+</html>
