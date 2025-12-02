@@ -17,7 +17,7 @@ app.get("/api/layers/:table", async (req, res) => {
   console.log(`[DEBUG] Received request for table: ${table}`);
 
   // POVOLENÉ TABULKY
-  const allowed = ["chko", "orp", "ku"]; // frontend requests 'ku', but db table is 'ku_cz'
+  const allowed = ["chko", "orp", "ku"]; // frontend requests 'ku', but db table is 'ku_cr'
   console.log(`[DEBUG] Allowed tables: ${allowed}`);
   if (!allowed.includes(table)) {
     console.error(`[ERROR] Invalid table name requested: '${table}'. Allowed: ${allowed.join(', ')}`);
@@ -41,7 +41,7 @@ app.get("/api/layers/:table", async (req, res) => {
 
     case "ku":
         nameColumn = "NAZ_KU"; // Katastrální území
-        fullTableName = `"ku_cr"`; // Corrected table name based on image: ku_cr
+        fullTableName = `"ku_cr"`; // Actual table name in DB
         break;
     // No default for table names as they are checked by 'allowed' list
   }
@@ -73,203 +73,6 @@ app.get("/api/layers/:table", async (req, res) => {
 
     res.json(geojson);
 
-You will NOT rewrite or break my existing working Leaflet web application.  
-You will extend the UI so that it fully matches the methodology and data structure  
-of the GEOTE semester assignment.
-
-Keep the existing functionality working.
-Only ADD new UI functionality.
-
-==========================================================
-### CONTEXT (IMPORTANT)
-
-My climate dataset includes these temporal aggregation types for each variable:
-
-1) Monthly data:
-   M1, M2, … M12  
-
-2) Seasonal aggregations:
-   DJF  (December–January–February)
-   MAM  (March–April–May)
-   JJA  (June–July–August)
-   SON  (September–October–November)
-
-3) Special aggregations:
-   A-S  (Annual Scale – year-based average)
-   O-M  (October–March period)
-
-4) Annual averages:
-   *_avg in database
-
-The UI must reflect these real data categories.
-
-==========================================================
-### YOUR TASK — MODIFY ONLY THE FRONTEND UI:
-
-Update ONLY these files:
-- `/frontend/index.html`
-- `/frontend/style.css`
-- `/frontend/map.js`
-
-Do NOT remove or break any existing working logic.
-Integrate new UI elements cleanly into the existing sidebar structure.
-
-==========================================================
-### REQUIRED UI CHANGES:
-
-## 1. Expand the climate controls section in the sidebar:
-
-Add a new dropdown:
-**Time period selection**
-- Monthly:
-    • M1 (Leden)
-    • M2 (Únor)
-    • M3 (Březen)
-    • …
-    • M12 (Prosinec)
-- Seasonal:
-    • DJF (Zima)
-    • MAM (Jaro)
-    • JJA (Léto)
-    • SON (Podzim)
-- Special:
-    • A-S (Annual Scale)
-    • O-M (Říjen–Březen)
-- Annual:
-    • YEAR (Celoroční průměr)
-
-Structure the dropdown with HTML `<optgroup>` to keep the UI clean.
-
-Example:
-
-<select id="periodSelect">
-  <optgroup label="Monthly">
-    <option value="1">January</option>
-    ...
-    <option value="12">December</option>
-  </optgroup>
-
-  <optgroup label="Seasonal">
-    <option value="djf">DJF (Winter)</option>
-    <option value="mam">MAM (Spring)</option>
-    <option value="jja">JJA (Summer)</option>
-    <option value="son">SON (Autumn)</option>
-  </optgroup>
-
-  <optgroup label="Special">
-    <option value="as">A–S</option>
-    <option value="om">O–M</option>
-  </optgroup>
-
-  <optgroup label="Annual">
-    <option value="annual">Annual Average</option>
-  </optgroup>
-</select>
-
-Keep styling consistent with current UI.
-
-==========================================================
-### 2. Modify legend dynamically
-
-Legend box must display:
-- indicator name (e.g., “TAVG”)
-- period label (e.g., “JJA”, “M5”, “Annual”, “O–M”)
-- proper units (°C, mm, %, m/s)
-
-Example title:
-“Average Temperature – JJA (°C)”
-
-Map.js must update this automatically when user clicks Apply.
-
-==========================================================
-### 3. Modify Apply button behavior
-
-When user selects:
-- indicator
-- year
-- period (month / season / special / annual)
-
-Map.js must assemble API request:
-
-/api/climate/map?indicator=XXX&year=YYYY&period=PERIOD
-
-PERIOD may be:
-- "1"…"12"  
-- "djf"
-- "mam"
-- "jja"
-- "son"
-- "as"
-- "om"
-- "annual"
-
-Do NOT modify backend logic here — just adjust frontend request and UI.
-
-==========================================================
-### 4. Extend sidebar layout
-
-Add a visually separated “Time Period” section:
-
-Climate Data
----------------------------------------
-Indicator:    [dropdown]
-Year:         [dropdown]
-Period:       [dropdown you will create]
-[Apply button]
-
-Spacing, typography, and alignment must stay consistent with existing CSS.
-
-==========================================================
-### 5. Update detail panel (if present)
-
-When a polygon is clicked, display selected:
-
-- indicator
-- year
-- period label (e.g., DJF, MAM, M10, O-M)
-- value for the polygon
-
-Do NOT change data logic — only UI elements.
-
-==========================================================
-### 6. Update chart labeling
-
-The popup / detail chart must include correct labels:
-
-For monthly:
-  “Monthly values (M1–M12)”
-For seasonal:
-  “DJF, MAM, JJA, SON”
-For special:
-  “A-S”, “O-M”
-For annual:
-  “Annual Average”
-
-Map.js should update chart titles based on selected period.
-
-==========================================================
-### 7. Code Quality Requirements
-
-- Do NOT delete anything functional.
-- Insert code only where necessary.
-- Keep naming consistent (“periodSelect”, “selectedPeriod” etc.)
-- Use only vanilla JS.
-- Ensure dropdown updates do not break existing CHKO / ORP / KU logic.
-- Use CSS classes already present to maintain styling.
-
-==========================================================
-### OUTPUT DELIVERABLES
-
-Output three files:
-1. Updated `/frontend/index.html`
-2. Updated `/frontend/style.css`
-3. Updated `/frontend/map.js`
-
-Each with clearly marked inserted sections (comments: <!-- added -->, // added).
-
-==========================================================
-
-This UI extension must fully match the real dataset structure and be methodologically correct for the semester assignment.
   } catch (err) {
     console.error(`SQL ERROR for /api/layers/${table}:`, err.message);
     res.status(500).json({ error: err.message });
@@ -280,33 +83,120 @@ This UI extension must fully match the real dataset structure and be methodologi
 // CLIMATE API ENDPOINTS
 // ===============================
 
-// Helper function to get climate column name
-const getClimateColumn = (indicator, month) => {
-  const monthlyIndicators = ["tavg", "sra", "rh", "wv"];
-  if (monthlyIndicators.includes(indicator)) {
-    if (month === "annual") {
-      return `${indicator}_avg`;
-    } else if (parseInt(month) >= 1 && parseInt(month) <= 12) { // Use parseInt for month check
-      return `${indicator}_m${month}`;
-    }
-  } else if (["pet", "de_martonne", "heat_index"].includes(indicator)) {
-    return indicator; // These are annual/index values, month is ignored
+// Helper function to get climate column name dynamically from indicator and period
+const getClimateColumn = (indicator, period) => {
+  if (period === "year") {
+    return `${indicator}_avg`;
+  } else if (period.startsWith('m') && parseInt(period.substring(1)) >= 1 && parseInt(period.substring(1)) <= 12) {
+    return `${indicator}_${period}`; // e.g., tavg_m1
   }
-  return null; // Invalid combination
+  // For other period types (DJF, MAM, etc.) or unknown periods, return null for now.
+  // This would require more complex backend logic/database columns to support directly.
+  return null; // Invalid combination or unsupported period for direct column lookup
 };
+
+
+// METADATA ENDPOINT - ADDED
+app.get("/api/climate/meta", async (req, res) => {
+  console.log("[DEBUG] Received request for /api/climate/meta");
+  try {
+    const sql = `
+      SELECT column_name
+      FROM information_schema.columns
+      WHERE table_schema = 'public' AND table_name = 'climate_master_geom'
+        AND (column_name LIKE '%_m%' OR column_name LIKE '%_avg%'
+             OR column_name = 'pet' OR column_name = 'de_martonne' OR column_name = 'heat_index');
+    `;
+    const result = await db.query(sql);
+
+    const indicators = {};
+    const fixedIndicators = ["pet", "de_martonne", "heat_index"];
+
+    result.rows.forEach(row => {
+      const colName = row.column_name;
+      
+      if (fixedIndicators.includes(colName)) { // Handle special indicators directly
+        if (!indicators[colName]) {
+          indicators[colName] = [];
+        }
+        if (!indicators[colName].includes('year')) { // Assume these are annual indices
+          indicators[colName].push('year');
+        }
+        return;
+      }
+
+      const parts = colName.split('_');
+      if (parts.length >= 2) {
+        const indicator = parts[0];
+        const period = parts.slice(1).join('_'); // Rejoin to handle _avg correctly
+
+        if (!indicators[indicator]) {
+          indicators[indicator] = [];
+        }
+        if (period === 'avg') { // Map _avg to 'year' for consistency with frontend
+          if (!indicators[indicator].includes('year')) {
+            indicators[indicator].push('year');
+          }
+        } else { // Monthly periods
+          if (!indicators[indicator].includes(period)) {
+            indicators[indicator].push(period);
+          }
+        }
+      }
+    });
+
+    // Sort monthly periods, 'year' always last
+    for (const indicator in indicators) {
+        indicators[indicator].sort((a, b) => {
+            if (a.startsWith('m') && b.startsWith('m')) {
+                return parseInt(a.substring(1)) - parseInt(b.substring(1));
+            }
+            if (a === 'year' && b !== 'year') return 1;
+            if (b === 'year' && a !== 'year') return -1;
+            return 0;
+        });
+    }
+
+    res.json({ indicators });
+
+  } catch (err) {
+    console.error("SQL ERROR in /api/climate/meta:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET YEARS ENDPOINT - ADDED
+app.get("/api/climate/years", async (req, res) => {
+  console.log("[DEBUG] Received request for /api/climate/years");
+  try {
+    const sql = `
+      SELECT DISTINCT year
+      FROM climate_master_geom
+      ORDER BY year ASC;
+    `;
+    const result = await db.query(sql);
+    const years = result.rows.map(row => row.year);
+    res.json({ years });
+  } catch (err) {
+    console.error("SQL ERROR in /api/climate/years:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 // 1. Map choropleth endpoint
 app.get("/api/climate/map", async (req, res) => {
-  const { indicator, year, month } = req.query;
-  console.log(`[DEBUG] /api/climate/map received. Params: indicator='${indicator}', year='${year}', month='${month}'`);
+  const { indicator, year, period } = req.query; // Changed 'month' to 'period'
+  console.log(`[DEBUG] /api/climate/map received. Params: indicator='${indicator}', year='${year}', period='${period}'`);
 
-  if (!indicator || !year || !month) {
-    return res.status(400).json({ error: "Missing required query parameters: indicator, year, month" });
+  if (!indicator || !year || !period) {
+    return res.status(400).json({ error: "Missing required query parameters: indicator, year, period" });
   }
 
-  const climateColumn = getClimateColumn(indicator, month);
+  const climateColumn = getClimateColumn(indicator, period);
   if (!climateColumn) {
-    return res.status(400).json({ error: "Invalid indicator or month combination" });
+    console.error(`[ERROR] Invalid indicator ('${indicator}') or period ('${period}') combination for column lookup.`);
+    return res.status(400).json({ error: `Invalid indicator ('${indicator}') or period ('${period}') combination.` });
   }
 
   try {
@@ -352,7 +242,8 @@ app.get("/api/climate/map", async (req, res) => {
 // 2. Detail endpoint for one cadastral unit
 app.get("/api/climate/detail/:areaid", async (req, res) => {
   const areaid = req.params.areaid;
-  const { indicator } = req.query;
+  const { indicator, period } = req.query; // Changed 'month' to 'period'
+  console.log(`[DEBUG] /api/climate/detail/${areaid} received. Indicator: '${indicator}', Period: '${period}'`);
 
   if (!indicator) {
     return res.status(400).json({ error: "Missing required query parameter: indicator" });
@@ -360,77 +251,51 @@ app.get("/api/climate/detail/:areaid", async (req, res) => {
 
   const monthlyIndicators = ["tavg", "sra", "rh", "wv"];
   const isMonthly = monthlyIndicators.includes(indicator);
-  console.log(`[DEBUG] /api/climate/detail/${areaid} received. Indicator: '${indicator}' (Monthly: ${isMonthly})`);
-
+  
   try {
     let sql;
     let resultRows;
 
-    if (isMonthly) {
-      // Fetch all monthly values for all years for the given indicator
-      const columns = Array.from({ length: 12 }, (_, i) => `${indicator}_m${i + 1}`).join(", ");
-      sql = `
-        SELECT
-          areaid,
-          "NAZ_KU",
-          "NAZ_OBEC",
-          year,
-          ${columns}
-        FROM climate_master_geom
-        WHERE areaid = $1
-        ORDER BY year ASC;
-      `;
-      console.log(`[DEBUG] Executing SQL for /api/climate/detail (monthly): ${sql}`);
-      resultRows = (await db.query(sql, [areaid])).rows;
+    // For detail endpoint, we always fetch all monthly values to support frontend chart/table
+    // Frontend will then filter/aggregate based on the 'period' parameter.
+    const columns = monthlyIndicators.includes(indicator) ? 
+                    Array.from({ length: 12 }, (_, i) => `${indicator}_m${i + 1}`).join(", ") : 
+                    indicator; // If not monthly, it's an annual index
 
-      const timeSeries = {};
-      resultRows.forEach(row => {
-        timeSeries[row.year] = Array.from({ length: 12 }, (_, i) => {
-          const value = row[`${indicator}_m${i + 1}`];
-          return (value === null || !isFinite(value)) ? null : parseFloat(value);
-        });
-      });
+    sql = `
+      SELECT
+        areaid,
+        "NAZ_KU",
+        "NAZ_OBEC",
+        year,
+        ${columns}
+      FROM climate_master_geom
+      WHERE areaid = $1
+      ORDER BY year ASC;
+    `;
+    console.log(`[DEBUG] Executing SQL for /api/climate/detail: ${sql}`);
+    resultRows = (await db.query(sql, [areaid])).rows;
 
-      res.json({
-        areaid: resultRows[0]?.areaid,
-        NAZ_KU: resultRows[0]?.NAZ_KU,
-        NAZ_OBEC: resultRows[0]?.NAZ_OBEC,
-        indicator: indicator,
-        timeSeries: timeSeries
-      });
+    const timeSeries = {};
+    resultRows.forEach(row => {
+        if (isMonthly) {
+            timeSeries[row.year] = Array.from({ length: 12 }, (_, i) => {
+                const value = row[`${indicator}_m${i + 1}`];
+                return (value === null || !isFinite(value)) ? null : parseFloat(value);
+            });
+        } else {
+            const value = row[indicator]; // For annual indices like PET, De Martonne
+            timeSeries[row.year] = (value === null || !isFinite(value)) ? null : parseFloat(value);
+        }
+    });
 
-    } else {
-      // Fetch annual values for all years for the given indicator
-      sql = `
-        SELECT
-          areaid,
-          "NAZ_KU",
-          "NAZ_OBEC",
-          year,
-          ${indicator} AS value
-        FROM climate_master_geom
-        WHERE areaid = $1
-          AND ${indicator} IS NOT NULL
-          AND ${indicator} != 'Infinity'
-          AND ${indicator} != '-Infinity'
-        ORDER BY year ASC;
-      `;
-      console.log(`[DEBUG] Executing SQL for /api/climate/detail (annual): ${sql}`);
-      resultRows = (await db.query(sql, [areaid])).rows;
-
-      const timeSeries = {};
-      resultRows.forEach(row => {
-        timeSeries[row.year] = parseFloat(row.value);
-      });
-
-      res.json({
-        areaid: resultRows[0]?.areaid,
-        NAZ_KU: resultRows[0]?.NAZ_KU,
-        NAZ_OBEC: resultRows[0]?.NAZ_OBEC,
-        indicator: indicator,
-        timeSeries: timeSeries
-      });
-    }
+    res.json({
+      areaid: resultRows[0]?.areaid,
+      NAZ_KU: resultRows[0]?.NAZ_KU,
+      NAZ_OBEC: resultRows[0]?.NAZ_OBEC,
+      indicator: indicator,
+      timeSeries: timeSeries
+    });
 
   } catch (err) {
     console.error(`SQL ERROR in /api/climate/detail/${areaid}:`, err.message);
@@ -442,16 +307,17 @@ app.get("/api/climate/detail/:areaid", async (req, res) => {
 const createAggregationEndpoint = (layerTable, nameColumn) => {
   return async (req, res) => {
     const areaName = req.params.name;
-    const { indicator, year, month } = req.query;
-    console.log(`[DEBUG] /api/climate/${layerTable}/${areaName} received. Params: indicator='${indicator}', year='${year}', month='${month}'`);
+    const { indicator, year, period } = req.query; // Changed 'month' to 'period'
+    console.log(`[DEBUG] /api/climate/${layerTable}/${areaName} received. Params: indicator='${indicator}', year='${year}', period='${period}'`);
 
-    if (!indicator || !year || !month) {
-      return res.status(400).json({ error: "Missing required query parameters: indicator, year, month" });
+    if (!indicator || !year || !period) {
+      return res.status(400).json({ error: "Missing required query parameters: indicator, year, period" });
     }
 
-    const climateColumn = getClimateColumn(indicator, month);
+    const climateColumn = getClimateColumn(indicator, period);
     if (!climateColumn) {
-      return res.status(400).json({ error: "Invalid indicator or month combination" });
+      console.error(`[ERROR] Invalid indicator ('${indicator}') or period ('${period}') combination for column lookup.`);
+      return res.status(400).json({ error: `Invalid indicator ('${indicator}') or period ('${period}') combination.` });
     }
 
     try {
@@ -481,7 +347,7 @@ const createAggregationEndpoint = (layerTable, nameColumn) => {
         area_name: areaName,
         indicator: indicator,
         year: parseInt(year),
-        month: month,
+        period: period, // Changed 'month' to 'period'
         count: parseInt(row.count),
         mean: parseFloat(row.mean),
         min: parseFloat(row.min),
