@@ -1,82 +1,130 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Climate GIS Dashboard</title>
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script> <!-- Added D3.js library -->
-
-  <link rel="stylesheet" href="./style.css" />
-  <script defer src="./map.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web-GIS Dashboard GEOTE</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="sidebar">
-    <h2>Layers</h2>
-    <div class="layer-controls">
-      <div><input type="checkbox" id="chk-chko"><label for="chk-chko">CHKO</label></div>
-      <div><input type="checkbox" id="chk-orp"><label for="chk-orp">ORP</label></div>
-      <div><input type="checkbox" id="chk-climate_master_geom"><label for="chk-climate_master_geom">Klima</label></div>
+    <div class="container">
+        <div class="sidebar left-sidebar">
+            <h1>Web-GIS Dashboard GEOTE</h1>
+
+            <section class="control-section">
+                <h2>Layers</h2>
+                <label><input type="checkbox" id="layerChko"> CHKO</label>
+                <label><input type="checkbox" id="layerOrp"> ORP</label>
+                <label><input type="checkbox" id="layerKu"> Katastrální území (KU)</label>
+                <label><input type="checkbox" id="layerClimate"> Klima</label>
+            </section>
+
+            <section class="control-section">
+                <h2>Výběr území</h2>
+                <div class="radio-group">
+                    <label><input type="radio" name="territoryType" value="ku" checked> Katastrální území</label>
+                    <label><input type="radio" name="territoryType" value="orp"> ORP</label>
+                    <label><input type="radio" name="territoryType" value="chko"> CHKO</label>
+                </div>
+                <input type="text" id="territorySearchInput" placeholder="Search by name...">
+                <button id="selectFromMapButton">Vybrat z mapy</button>
+            </section>
+
+            <section class="control-section">
+                <h2>Klimatická data</h2>
+                <label for="indicatorSelect">Indicator:</label>
+                <select id="indicatorSelect">
+                    <option value="tavg">Průměrná teplota (TAVG)</option>
+                    <option value="sra">Srážky (SRA)</option>
+                    <option value="rh">Relativní vlhkost (RH)</option>
+                    <option value="wv">Rychlost větru (WV)</option>
+                    <option value="de_martonne">De Martonne</option>
+                    <option value="heat_index">Heat Index</option>
+                    <option value="pet">PET</option>
+                </select>
+
+                <label for="yearSelect">Year:</label>
+                <select id="yearSelect"></select> <!-- Populated by JS -->
+
+                <label for="periodSelect">Period:</label>
+                <select id="periodSelect">
+                  <optgroup label="Monthly">
+                    <option value="1">M1 (Leden)</option>
+                    <option value="2">M2 (Únor)</option>
+                    <option value="3">M3 (Březen)</option>
+                    <option value="4">M4 (Duben)</option>
+                    <option value="5">M5 (Květen)</option>
+                    <option value="6">M6 (Červen)</option>
+                    <option value="7">M7 (Červenec)</option>
+                    <option value="8">M8 (Srpen)</option>
+                    <option value="9">M9 (Září)</option>
+                    <option value="10">M10 (Říjen)</option>
+                    <option value="11">M11 (Listopad)</option>
+                    <option value="12">M12 (Prosinec)</option>
+                  </optgroup>
+
+                  <optgroup label="Seasonal">
+                    <option value="djf">DJF (Zima)</option>
+                    <option value="mam">MAM (Jaro)</option>
+                    <option value="jja">JJA (Léto)</option>
+                    <option value="son">SON (Podzim)</option>
+                  </optgroup>
+
+                  <optgroup label="Special">
+                    <option value="as">A–S (Annual Scale)</option>
+                    <option value="om">O–M (Říjen–Březen)</option>
+                  </optgroup>
+
+                  <optgroup label="Annual">
+                    <option value="annual">YEAR (Celoroční průměr)</option>
+                  </optgroup>
+                </select>
+
+                <button id="applyClimateButton">Použít</button>
+            </section>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="sidebar right-panel" id="detailPanel">
+            <h2>Detail Panel</h2>
+            <div id="selectedTerritoryInfo">
+                <p><strong>Name:</strong> <span id="detailName">N/A</span></p>
+                <p><strong>Level:</strong> <span id="detailLevel">N/A</span></p>
+                <p><strong>Indicator:</strong> <span id="detailIndicator">N/A</span></p>
+                <p><strong>Year:</strong> <span id="detailYear">N/A</span></p>
+                <p><strong>Month:</strong> <span id="detailMonth">N/A</span></p>
+            </div>
+
+            <h3>Numeric Summary</h3>
+            <div id="numericSummary">
+                <p><strong>Value for area:</strong> <span id="summaryAreaValue">N/A</span></p>
+                <p><strong>Min for CZ:</strong> <span id="summaryMinCZ">N/A</span></p>
+                <p><strong>Max for CZ:</strong> <span id="summaryMaxCZ">N/A</span></p>
+                <p><strong>Mean for CZ:</strong> <span id="summaryMeanCZ">N/A</span></p>
+            </div>
+
+            <h3>Time Series Data</h3>
+            <div id="timeSeriesTableContainer">
+                <table>
+                    <thead>
+                        <tr id="timeSeriesTableHeader"></tr>
+                    </thead>
+                    <tbody id="timeSeriesTableBody">
+                    </tbody>
+                </table>
+            </div>
+
+            <h3>Chart</h3>
+            <div class="chart-container">
+                <canvas id="climateChart"></canvas>
+            </div>
+        </div>
     </div>
 
-    <h2>Climate Data</h2>
-    <div class="climate-controls">
-      <label for="indicator-select">Indicator:</label>
-      <select id="indicator-select">
-        <option value="tavg_m">TAVG (monthly)</option>
-        <option value="sra_m">SRA (monthly)</option>
-        <option value="rh_m">RH (monthly)</option>
-        <option value="wv_m">WV (monthly)</option>
-        <option value="pet">PET</option>
-        <option value="demartonne">De Martonne</option>
-        <option value="heatindex">Heat Index</option>
-      </select>
-
-      <label for="year-select">Year:</label>
-      <select id="year-select">
-        <!-- Years will be dynamically populated by JS if needed, for now a placeholder -->
-        <option value="2020">2020</option>
-        <option value="2021">2021</option>
-        <option value="2022">2022</option>
-      </select>
-
-      <label for="month-select">Month:</label>
-      <select id="month-select">
-        <option value="annual">Annual Average</option>
-        <option value="1">January</option>
-        <option value="2">February</option>
-        <option value="3">March</option>
-        <option value="4">April</option>
-        <option value="5">May</option>
-        <option value="6">June</option>
-        <option value="7">July</option>
-        <option value="8">August</option>
-        <option value="9">September</option>
-        <option value="10">October</option>
-        <option value="11">November</option>
-        <option value="12">December</option>
-      </select>
-
-      <button id="apply-filters">Apply</button>
-    </div>
-  </div>
-
-  <div id="map"></div>
-
-  <div id="legend" class="leaflet-control"></div>
-
-  <div id="popup-container" style="display: none;">
-    <div class="popup-content">
-      <button class="close-popup" onclick="document.getElementById('popup-container').style.display='none';">&times;</button>
-      <h3>Polygon Data</h3>
-      <div id="popup-properties"></div>
-      <h4>Climate Values:</h4>
-      <table id="popup-climate-table"></table>
-      <h4>Annual Trend:</h4>
-      <canvas id="climate-chart"></canvas>
-    </div>
-  </div>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="map.js"></script>
 </body>
 </html>
