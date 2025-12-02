@@ -10,13 +10,13 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 // Global variables for layers and selected feature
 let chkoLayer = null;
 let orpLayer = null;
-let kuLayer = null;
+// Removed kuLayer as per user request
 let climateLayer = null;
 let selectedFeatureLayer = null; // To store the highlighted selected feature
 let currentChart = null; // To store the Chart.js instance
 
 // Autocomplete data
-let allKuNames = [];
+// Removed allKuNames as per user request
 let allOrpNames = [];
 let allChkoNames = [];
 
@@ -49,7 +49,7 @@ async function fetchData(endpoint) {
 // =================================================================================
 const layerChkoCheckbox = document.getElementById('layerChko');
 const layerOrpCheckbox = document.getElementById('layerOrp');
-const layerKuCheckbox = document.getElementById('layerKu');
+// Removed layerKuCheckbox as per user request
 const layerClimateCheckbox = document.getElementById('layerClimate');
 
 const territoryTypeRadios = document.querySelectorAll('input[name="territoryType"]');
@@ -237,7 +237,7 @@ function highlightFeature(layer, type) {
     selectedFeatureLayer = layer; // Store the currently selected feature layer
 
     const properties = layer.feature.properties;
-    displayDetailPanel(properties.areaid || properties.NAZ_KU || properties.nazev, type);
+    displayDetailPanel(properties.areaid || properties.NAZ_ORP || properties.nazev, type); // Updated to prefer NAZ_ORP over NAZ_KU
 }
 
 // Function to reset feature highlight
@@ -317,23 +317,7 @@ async function loadBaseLayers() {
         });
     }
 
-    // Load KU
-    const kuData = await fetchData('/api/layers/ku');
-    if (kuData) {
-        kuLayer = L.geoJSON(kuData, {
-            style: {
-                fillColor: '#b2df8a', // Light green for KU
-                weight: 1,
-                opacity: 1,
-                color: 'white',
-                fillOpacity: 0.7
-            },
-            onEachFeature: function(feature, layer) {
-                layer.on('click', (e) => handleLayerClick(e, 'ku'));
-                allKuNames.push(feature.properties.nazev);
-            }
-        });
-    }
+    // Removed Load KU as per user request
 }
 
 // =================================================================================
@@ -490,14 +474,14 @@ async function displayDetailPanel(id, level) {
     let name = '';
     let areaValue = 'N/A';
 
-    if (level === 'ku' || level === 'climate') {
-        const endpoint = `/api/climate/detail/${id}?indicator=${indicator}&period=${period}`; // Pass period to detail for consistent frontend aggregation
+    // Removed KU logic as per user request
+    if (level === 'climate') { // Climate layer is based on KU, so treat as KU detail
+        const endpoint = `/api/climate/detail/${id}?indicator=${indicator}&period=${period}`;
         detailData = await fetchData(endpoint);
-        name = detailData?.NAZ_OBEC || detailData?.NAZ_KU || 'N/A';
+        name = detailData?.NAZ_OBEC || detailData?.NAZ_KU || 'N/A'; // Still use KU names from backend
         detailName.textContent = name;
         detailLevel.textContent = 'Katastrální území';
 
-        // Find the specific value for the selected year and period from timeSeries
         if (detailData && detailData.timeSeries) {
             const yearTimeSeries = detailData.timeSeries[year];
             if (yearTimeSeries) {
@@ -506,26 +490,25 @@ async function displayDetailPanel(id, level) {
                 );
                 const isMonthlyDataIndicator = monthlyIndicatorsFromMeta.includes(indicator);
 
-                if (isMonthlyDataIndicator) { // If the indicator has monthly data
-                    if (period === 'year') { // Annual average from monthly data
+                if (isMonthlyDataIndicator) { 
+                    if (period === 'year') {
                         const validMonths = yearTimeSeries.filter(v => v !== null && isFinite(v));
                         areaValue = validMonths.length > 0 ? (validMonths.reduce((a, b) => a + b, 0) / validMonths.length).toFixed(2) : 'N/A';
-                    } else if (period.startsWith('m') && parseInt(period.substring(1)) >= 1 && parseInt(period.substring(1)) <= 12) { // Specific month
+                    } else if (period.startsWith('m') && parseInt(period.substring(1)) >= 1 && parseInt(period.substring(1)) <= 12) {
                         const monthIndex = parseInt(period.substring(1)) - 1;
                         areaValue = (yearTimeSeries[monthIndex] !== null && isFinite(yearTimeSeries[monthIndex])) ? yearTimeSeries[monthIndex].toFixed(2) : 'N/A';
-                    } else { // Seasonal/Special periods (not directly from timeSeries, display N/A or fallback)
+                    } else {
                         areaValue = "N/A"; 
                     }
-                } else { // For annual indices like PET, De Martonne, Heat Index
+                } else { 
                     areaValue = (yearTimeSeries !== null && isFinite(yearTimeSeries)) ? yearTimeSeries.toFixed(2) : 'N/A';
                 }
             }
         }
     } else if (level === 'orp' || level === 'chko') {
-        // Updated API endpoint to use 'period'
         const endpoint = `/api/climate/${level}/${id}?indicator=${indicator}&year=${year}&period=${period}`; 
         detailData = await fetchData(endpoint);
-        name = id; // ORP/CHKO names are passed as IDs in the URL
+        name = id; 
         detailName.textContent = name;
         detailLevel.textContent = level.toUpperCase();
         if (detailData && detailData.mean !== undefined) {
@@ -534,12 +517,10 @@ async function displayDetailPanel(id, level) {
     }
     summaryAreaValue.textContent = areaValue;
 
-    // Populate time series table and chart
     if (detailData && detailData.timeSeries) {
         updateTimeSeriesTableAndChart(detailData.timeSeries, indicator, period);
     }
 
-    // Update global CZ min/max/mean from climateDataGlobal (only for climate layer selection)
     if (level === 'climate' && climateDataGlobal && climateDataGlobal.features.length > 0) {
         const czValues = climateDataGlobal.features
             .map(f => f.properties.value)
@@ -549,7 +530,7 @@ async function displayDetailPanel(id, level) {
             summaryMaxCZ.textContent = Math.max(...czValues).toFixed(2);
             summaryMeanCZ.textContent = (czValues.reduce((a, b) => a + b, 0) / czValues.length).toFixed(2);
         }
-    } else { // Clear CZ summary if not a climate layer or no climate data
+    } else { 
         summaryMinCZ.textContent = 'N/A';
         summaryMaxCZ.textContent = 'N/A';
         summaryMeanCZ.textContent = 'N/A';
@@ -569,31 +550,29 @@ function updateTimeSeriesTableAndChart(timeSeries, indicator, period) {
     let chartLabelText = getIndicatorDisplayName(indicator);
     let tableHeaderCells = '<th>Year</th>';
 
-    // Chart Data Preparation
     const chartLabels = years;
     const chartData = years.map(year => {
         const data = timeSeries[year];
         if (isMonthlyDataIndicator) {
-            if (period === 'year') { // Annual average from monthly data
+            if (period === 'year') { 
                 const validMonths = data.filter(v => v !== null && isFinite(v));
                 return validMonths.length > 0 ? (validMonths.reduce((a, b) => a + b, 0) / validMonths.length) : null;
-            } else if (period.startsWith('m')) { // Specific month
+            } else if (period.startsWith('m')) {
                 const monthIndex = parseInt(period.substring(1)) - 1;
                 return (data[monthIndex] !== null && isFinite(data[monthIndex])) ? data[monthIndex] : null;
-            } else { // Seasonal/Special periods (display annual avg in chart for now)
+            } else { 
                 const validMonths = data.filter(v => v !== null && isFinite(v));
                 return validMonths.length > 0 ? (validMonths.reduce((a, b) => a + b, 0) / validMonths.length) : null;
             }
-        } else { // Annual index data
+        } else { 
             return (data !== null && isFinite(data)) ? data : null;
         }
     });
 
-    // Chart Label based on period
     if (isMonthlyDataIndicator) {
         if (period === 'year') { chartLabelText += ' (Annual Avg)'; }
         else if (period.startsWith('m')) { chartLabelText += ` (${getPeriodDisplayName(period)})`; }
-        else { chartLabelText += ' (Annual Avg)'; } // Fallback for seasonal/special in chart
+        else { chartLabelText += ' (Annual Avg)'; } 
     } else {
         chartLabelText += ` (${getPeriodDisplayName(period)})`;
     }
@@ -623,7 +602,6 @@ function updateTimeSeriesTableAndChart(timeSeries, indicator, period) {
         }
     });
 
-    // Table Data Preparation
     if (isMonthlyDataIndicator && (period === 'year' || period.startsWith('m'))) {
         tableHeaderCells += `<th>${getPeriodDisplayName(period)}</th>`;
         timeSeriesTableHeader.innerHTML = tableHeaderCells;
@@ -641,7 +619,7 @@ function updateTimeSeriesTableAndChart(timeSeries, indicator, period) {
             rowElement.innerHTML = `<td>${year}</td><td>${valueToDisplay}</td>`;
             timeSeriesTableBody.appendChild(rowElement);
         });
-    } else if (isMonthlyDataIndicator) { // Monthly data indicators with Seasonal/Special period selected
+    } else if (isMonthlyDataIndicator) { 
         monthNamesArr = ['M1 (Leden)', 'M2 (Únor)', 'M3 (Březen)', 'M4 (Duben)', 'M5 (Květen)', 'M6 (Červen)', 'M7 (Červenec)', 'M8 (Srpen)', 'M9 (Září)', 'M10 (Říjen)', 'M11 (Listopad)', 'M12 (Prosinec)'];
         monthNamesArr.forEach(name => tableHeaderCells += `<th>${name}</th>`);
         timeSeriesTableHeader.innerHTML = tableHeaderCells;
@@ -656,7 +634,7 @@ function updateTimeSeriesTableAndChart(timeSeries, indicator, period) {
             timeSeriesTableBody.appendChild(rowElement);
         });
 
-    } else { // Annual index data
+    } else { 
         tableHeaderCells += `<th>Value</th>`;
         timeSeriesTableHeader.innerHTML = tableHeaderCells;
         years.forEach(year => {
@@ -675,7 +653,7 @@ function updateTimeSeriesTableAndChart(timeSeries, indicator, period) {
 function handleLayerClick(e, layerType) {
     if (selectFromMapButton.classList.contains('active')) {
         highlightFeature(e.layer, layerType);
-        document.querySelector(`input[name="territoryType"][value="${layerType === 'climate' ? 'ku' : layerType}"]`).checked = true;
+        document.querySelector(`input[name="territoryType"][value="${layerType === 'climate' ? 'orp' : layerType}"]`).checked = true; // Changed 'ku' to 'orp' as default if climate layer clicked
         territorySearchInput.value = e.layer.feature.properties.nazev;
         selectFromMapButton.classList.remove('active');
         selectFromMapButton.textContent = 'Vybrat z mapy';
@@ -714,10 +692,7 @@ layerOrpCheckbox.addEventListener('change', () => {
     else { if (orpLayer) map.removeLayer(orpLayer); }
 });
 
-layerKuCheckbox.addEventListener('change', () => {
-    if (layerKuCheckbox.checked) { if (kuLayer) kuLayer.addTo(map); } 
-    else { if (kuLayer) map.removeLayer(kuLayer); }
-});
+// Removed layerKuCheckbox event listener as per user request
 
 layerClimateCheckbox.addEventListener('change', () => {
     if (layerClimateCheckbox.checked) { applyClimateButton.click(); } 
@@ -771,7 +746,7 @@ function autocomplete(inp, arr) {
                     const currentTerritoryType = document.querySelector('input[name="territoryType"]:checked').value;
 
                     switch (currentTerritoryType) {
-                        case 'ku': if (kuLayer) targetLayer = kuLayer; targetLevel = 'ku'; break;
+                        // Removed case 'ku'
                         case 'orp': if (orpLayer) targetLayer = orpLayer; targetLevel = 'orp'; break;
                         case 'chko': if (chkoLayer) targetLayer = chkoLayer; targetLevel = 'chko'; break;
                     }
@@ -840,7 +815,7 @@ territoryTypeRadios.forEach(radio => {
         const selectedType = document.querySelector('input[name="territoryType"]:checked').value;
         let dataArray = [];
         switch (selectedType) {
-            case 'ku': dataArray = allKuNames; break;
+            // Removed case 'ku'
             case 'orp': dataArray = allOrpNames; break;
             case 'chko': dataArray = allChkoNames; break;
         }
@@ -848,4 +823,5 @@ territoryTypeRadios.forEach(radio => {
     });
 });
 
-autocomplete(territorySearchInput, allKuNames);
+// Initial autocomplete setup, default to ORP (removed KU default)
+autocomplete(territorySearchInput, allOrpNames);
